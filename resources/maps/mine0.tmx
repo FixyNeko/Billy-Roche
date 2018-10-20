@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="left-up" width="12" height="12" tilewidth="32" tileheight="32" nextobjectid="1">
- <tileset firstgid="1" source="mine.tsx"/>
+ <tileset firstgid="1" source="../../../mine.tsx"/>
  <layer name="12_b" width="12" height="12" visible="0">
   <properties>
    <property name="size" type="int" value="12"/>
@@ -304,6 +304,9 @@
   </data>
  </layer>
  <layer name="12_2" width="12" height="12" visible="0">
+  <properties>
+   <property name="size" type="int" value="12"/>
+  </properties>
   <data>
    <tile gid="193"/>
    <tile gid="147"/>
