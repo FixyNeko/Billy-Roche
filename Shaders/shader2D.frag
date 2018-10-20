@@ -72,7 +72,7 @@ void main() {
 
 
 	if(currentDepth > shadowDepth - biasPixels - bias)
-		fragColor *= clamp( (shadowDepth - currentDepth) / biasPixels, 0.05, 1);
+		fragColor *= clamp( (shadowDepth - currentDepth) / biasPixels, 0.1, 1);
 	
 	fragColor *= 1. - currentDepth;
 	

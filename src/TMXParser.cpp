@@ -111,9 +111,10 @@ namespace TMX {
 		if( layer.data.encoding == std::string("XML")) {
 			layer.data.contents.clear();
 			rapidxml::xml_node<>* current_tile_node = data_node->first_node("tile");
+			char* str = (char*) malloc(2 * sizeof(char));
+			str[1] = '\0';
 			while(current_tile_node != 0) {
-				char str[1];
-				str[0] = (char) (*current_tile_node->first_attribute("gid")->value() - '1' + 'A');
+				str[0] = (char) (*current_tile_node->first_attribute("gid")->value() - '1' );
 				layer.data.contents.append( str );
 				current_tile_node = current_tile_node->next_sibling("tile");
 			}

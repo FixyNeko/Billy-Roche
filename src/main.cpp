@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 
     prepareVBO();
 
-    ml = new mapLoader(std::string("resources/maps/"), std::string("test"), std::string(".tmx"));
+    ml = new mapLoader(std::string("resources/maps/"), std::string("mine"), std::string(".tmx"));
 
     try {
         map = ml->nextLevel();

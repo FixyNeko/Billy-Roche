@@ -1,15 +1,25 @@
 #ifndef MAPLOADER_DEF
 #define MAPLOADER_DEF
 
-#include <stdLib.h>
+#include <stdlib.h>
+#include <time.h>
 #include <iostream>
 #include <string>
 #include <stdexcept>
 #include <GL/glew.h>
 #include "Map.h"
+#include "Pattern.h"
 #include "TMXParser.h"
 #include "TSXParser.h"
 #include "sdlglutils.h"
+
+struct mapStruct{
+    unsigned char id;
+    bool up;
+    bool down;
+    bool left;
+    bool right;
+};
 
 class mapLoader {
 private:
@@ -25,7 +35,9 @@ public:
     mapLoader(std::string filePath, std::string basicName, std::string extension);
     ~mapLoader();
     Map * nextLevel();
-    static Map * readFromFile(std::string filePath, std::string fileName);
+    static Map * readFromFile(std::string filePath, std::string fileName, int mapWidth, int mapHeight);
+    static bool isAvailable(int x, int y, int width, int height, int size, mapStruct* tiles);
+    static bool isConnecting(int x, int y, int width, int height, int size, mapStruct* tiles, bool* isWall, Pattern* pattern);
 };
 
 #endif
