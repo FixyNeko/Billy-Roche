@@ -62,20 +62,15 @@ char Wall::getType(){
 void Wall::draw(){
     glBindVertexArray(m_vaoID);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, (*m_textures)[m_texID]);
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        if(m_texID < 256 && m_texID > 0){
+            glBindTexture(GL_TEXTURE_2D, (*m_textures)[m_texID]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
     glBindVertexArray(0);
 }
 
 void Wall::drawOcc(float lightX, float lightY, int neighbors[4]){
-    /*
-    if(m_texID != 0) { // if not a wall #TODO need proper way to check it
-        glBindVertexArray(m_vaoOccID);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 10);
-        glBindVertexArray(0);
-    }
-    */
     /*
     2 etapes: 
         - cotes recevant de la lumière
