@@ -10,7 +10,6 @@ unsigned int lastTime, startTime, timePassed;
 SDL_Window *screen = NULL;
 SDL_GLContext glcontext = NULL;
 
-double angleX = 0, angleY = 0, altitude = 0;
 
 void draw(SDL_Window *);
 void SDLGLSetup();
@@ -59,10 +58,11 @@ int main(int argc, char *argv[])
 
     ml = new mapLoader(std::string("resources/maps/"), std::string("mine"), std::string(".tmx"));
 
+    player = new Player(0, 0, 0, "resources/textures/geologue.png");
+
     try {
         map = ml->nextLevel();
-        angleX = map->getEntryCoordX();
-        angleY = map->getEntryCoordY();
+        player->tp(map->getEntryCoordX(), map->getEntryCoordY());
     } catch(const std::exception& e) {
         std::cout << "Whoops! Something got wrong! "<< e.what() << std::endl;
         exit(1);
@@ -74,7 +74,6 @@ int main(int argc, char *argv[])
     occlusionShader->charger();
     drawShader->charger();
 
-    player = new Player();
     player->tp(WINDOW_WIDTH/2., WINDOW_HEIGHT/2.);
 
     SDL_Event event;
@@ -94,38 +93,45 @@ int main(int argc, char *argv[])
         const Uint8 *state = SDL_GetKeyboardState(NULL);
         const float speed = 0.2;
 
+        double dx = 0, dy = 0;
         double movement = timePassed * speed;
 
         if (state[SDL_SCANCODE_ESCAPE])
             terminate = true;
         if (state[SDL_SCANCODE_W])
-            if(map->getWall(angleX, angleY - movement)->isFloor())
-                angleY -= movement;
+            if(map->getWall(player->getX(), player->getY() - movement)->isFloor())
+                dy -= 1;
         if (state[SDL_SCANCODE_S])
-            if(map->getWall(angleX, angleY + movement)->isFloor())
-                angleY += movement;
+            if(map->getWall(player->getX(), player->getY() + movement)->isFloor())
+                dy += 1;
         if (state[SDL_SCANCODE_A])
-            if(map->getWall(angleX - movement, angleY)->isFloor())
-                angleX -= movement;
+            if(map->getWall(player->getX() - movement, player->getY())->isFloor())
+                dx -= 1;
         if (state[SDL_SCANCODE_D])
-            if(map->getWall(angleX + movement, angleY)->isFloor())
-                angleX += movement;
+            if(map->getWall(player->getX() + movement, player->getY())->isFloor())
+                dx += 1;
         if (state[SDL_SCANCODE_SPACE]) {
             if(loadLevel) {
                 map = ml->nextLevel();
-                angleX = map->getEntryCoordX();
-                angleY = map->getEntryCoordY();
+                player->tp(map->getEntryCoordX(), map->getEntryCoordY());
                 loadLevel = false;
             }
         }
-        else {
-            loadLevel = true;
+        else loadLevel = true;
+
+        /* player movement*/
+        dx = (dx*dx + dy*dy > 1)? dx / sqrt(2.) : dx;
+        dy = (dx*dx + dy*dy > 1)? dy / sqrt(2.) : dy;
+        dx *= movement;
+        dy *= movement;
+        if(dx != 0 || dy != 0) {
+            player->move(dx, dy);
+            player->setAngle(dx, dy);
         }
 
-        if(map->isOnExitTile(angleX, angleY)) {
+        if(map->isOnExitTile(player->getX(), player->getY())) {
             map = ml->nextLevel();
-            angleX = map->getEntryCoordX();
-            angleY = map->getEntryCoordY();
+            player->tp(map->getEntryCoordX(), map->getEntryCoordY());
         }
 
         try {
@@ -168,11 +174,11 @@ void draw(SDL_Window * screen) {
                 glViewport(WINDOW_WIDTH * i, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
                 
-                modelview = glm::lookAt(glm::vec3(  angleX,
-                                                    angleY,
+                modelview = glm::lookAt(glm::vec3(  player->getX(),
+                                                    player->getY(),
                                                     0), 
-                                        glm::vec3(  angleX + cos((i)*glm::two_pi<float>() / 4),
-                                                    angleY - sin((i)*glm::two_pi<float>() / 4),
+                                        glm::vec3(  player->getX() + cos((i)*glm::two_pi<float>() / 4),
+                                                    player->getY() - sin((i)*glm::two_pi<float>() / 4),
                                                     0.),
                                         glm::vec3(0., 0., 1.));
 
@@ -186,7 +192,7 @@ void draw(SDL_Window * screen) {
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
     
-                map->drawOcc(angleX, angleY);
+                map->drawOcc(player->getX(), player->getY());
     
                 glCullFace(GL_FRONT);
                 glDisable(GL_CULL_FACE);
@@ -200,7 +206,7 @@ void draw(SDL_Window * screen) {
 
     projection = glm::ortho(-WINDOW_WIDTH / 2.f, WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f, -WINDOW_HEIGHT / 2.f);
     modelview = glm::mat4(1.0f);
-    modelview = glm::translate(modelview, glm::vec3(-angleX, -angleY, 0));
+    modelview = glm::translate(modelview, glm::vec3(-player->getX(), -player->getY(), 0));
     
     glUseProgram(drawShader->getProgramID());
 
@@ -234,13 +240,7 @@ void draw(SDL_Window * screen) {
 
     glDisable(GL_DEPTH_TEST);
 
-    glBegin(GL_QUADS); /* character drawing */
-        glColor3f(0, 0, 1);
-        glVertex2f(-0.01, -0.01*16/9);
-        glVertex2f(0.01, -0.01*16/9);
-        glVertex2f(0.01, 0.01*16/9);
-        glVertex2f(-0.01, 0.01*16/9);
-    glEnd();
+    player->draw();
     
     glEnable(GL_DEPTH_TEST);
 

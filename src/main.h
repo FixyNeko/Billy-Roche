@@ -21,6 +21,7 @@
     #define BUFFER_OFFSET(offset) ((char*)NULL + (offset))
 #endif
 
+
 typedef BOOL (WINAPI *EDDType)(LPCSTR,DWORD,PDISPLAY_DEVICEA,DWORD);
 
 template<class T>

@@ -10,83 +10,67 @@ Player::Player(){}
 
 Player::Player(Player& playerSource){}
 
-Player::Player(float x, float y, float angle, float endX, float endY,
-    const char * textureFile, const char * visionFile): m_x(x), m_y(y), m_angle(angle),
-    m_endX(endX), m_endY(endY)
-{
-
-    if(glIsBuffer(m_vboID))
-        glDeleteBuffers(1, &m_vboID);
-    if(glIsVertexArray(m_vaoID))
-        glDeleteVertexArrays(1, &m_vaoID);
-
-    float bufferInfos[16 * 2] = {-32, -32, 
-                                32, -32,
-                                32, 32,
-                                -32, 32,
-                                -6*64, -6*64, 
-                                6*64, -6*64,
-                                6*64, 6*64,
-                                -6*64, 6*64,
-                                0, 0, 
-                                1, 0, 
-                                1, 1,
-                                0, 1,
-                                0, 0, 
-                                1, 0, 
-                                1, 1,
-                                0, 1};
+Player::Player(float x, float y, float angle, const char * textureFile):
+    m_x(x), m_y(y), m_angle(angle) {
 
     m_textureID = loadTexture(textureFile);
-    m_visionID = loadTexture(visionFile);
     
-    glGenBuffers(1, &m_vboID);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
-
-        glBufferData(GL_ARRAY_BUFFER, 16*2 * sizeof(float), bufferInfos, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenVertexArrays(1, &m_vaoID);
-    glBindVertexArray(m_vaoID);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
-    
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-            glEnableVertexAttribArray(0);
-
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(8));
-            glEnableVertexAttribArray(2);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);
 }
 
-void Player::tp(float x, float y){
+float Player::getX() {
+    return m_x;
+}
+
+float Player::getY() {
+    return m_y;
+}
+
+void Player::move(float x, float y) {
+    m_x += x;
+    m_y += y;
+}
+
+void Player::setAngle(float dx, float dy) {
+    if(dy == 0 && dx < 0){
+        m_angle = 90;
+    }
+    else if(dy == 0 && dx > 0){
+        m_angle = -90;
+    }
+    else if(dy < 0){
+        m_angle = std::atan(dx/dy)*180/PI;
+    }
+    else{
+        m_angle = std::atan(dx/dy)*180/PI + 180;
+    }
+}
+
+void Player::tp(float x, float y) {
     m_x = x;
     m_y = y;
 }
 
+void Player::draw(){
 
-void Player::draw(glm::mat4 projection, glm::mat4 modelview){
+    glPushMatrix();
 
-    // recup occlusion texture // DONE
-    //draw light rays distances tex // DONE
-    //draw texture of light beams // DONE
-    //draw scene multiplied with light beams texture // DONE
 
-    glBindVertexArray(m_vaoID);
+        gluOrtho2D(-16./9, 16./9, -1, 1);
+        glRotatef(m_angle , 0, 0, 1);
 
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, m_textureID);
-            
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        
-        glBindTexture(GL_TEXTURE_2D, m_visionID);
-        
-            glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
 
+        glBegin(GL_QUADS); /* character drawing */
+            glTexCoord2f(0. ,0. );glVertex2f(-0.05, -0.05);
+            glTexCoord2f(1. ,0. );glVertex2f(0.05, -0.05);
+            glTexCoord2f(1. ,1. );glVertex2f(0.05, 0.05);
+            glTexCoord2f(0. ,1. );glVertex2f(-0.05, 0.05);
+        glEnd();
+        
         glBindTexture(GL_TEXTURE_2D, 0);
-
-    glBindVertexArray(0);
+        glActiveTexture(GL_TEXTURE0);
+    
+    glPopMatrix();
 }

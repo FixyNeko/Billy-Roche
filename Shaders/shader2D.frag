@@ -28,11 +28,12 @@ float LinearizeDepth(float depth)
 
 
 float spaceToAngle(float x, float y) {
-
-	float result = 0;
-
+	float result;
 	if(x == 0 && y < 0){
 		result = PI;
+	}
+	else if(x == 0 && y < 0) {
+		result = 0;
 	}
 	else if(x > 0){
 		result = atan(y/x);
