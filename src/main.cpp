@@ -40,6 +40,7 @@ Map * map;
 
 int main(int argc, char *argv[])
 {
+
     SDLGLSetup();
 
 

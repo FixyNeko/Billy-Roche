@@ -70,7 +70,7 @@ namespace TSX {
       for( rapidxml::xml_node<>* tile_node = root_node->first_node( "tile" ); tile_node; tile_node = tile_node->next_sibling() ) {
         Tile tile;
         //tile - id
-        tile.id = std::atoi( tile_node->first_attribute( "id" )->value() );
+        tile.id = std::atoi( tile_node->first_attribute( "id" )->value()) + 1;
         //tile - terrain
         if( tile_node->first_attribute( "terrain" ) != 0 ) {
           std::string tmp = tile_node->first_attribute( "terrain" )->value();

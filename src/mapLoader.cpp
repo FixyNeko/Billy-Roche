@@ -2,6 +2,14 @@
 
 // methods
 
+float chances[5] = {
+    1.f/5.f * 3.f/3.f,
+    1.f/5.f * 3.f/6.f,
+    1.f/5.f * 3.f/9.f,
+    1.f/5.f * 3.f/12.f,
+    1.f/5.f * 3.f/15.f
+    };
+
 TMX::Parser* mapLoader::tmx = new TMX::Parser();
 TSX::Parser* mapLoader::tsx = new TSX::Parser();
 
@@ -28,10 +36,10 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
     tmx->load( (filePath + fileName).c_str() );
     int width = tmx->mapInfo.width;
     int height = tmx->mapInfo.height;
-    int beginX  = stoi(tmx->mapInfo.property.find("beginX")->second);
-    int beginY  = stoi(tmx->mapInfo.property.find("beginY")->second);
-    int endX    = stoi(tmx->mapInfo.property.find("endX" )->second);
-    int endY    = stoi(tmx->mapInfo.property.find("endY" )->second);
+    int beginX  = 2; //stoi(tmx->mapInfo.property.find("beginX")->second);
+    int beginY  = 2; //stoi(tmx->mapInfo.property.find("beginY")->second);
+    int endX    = 0; //stoi(tmx->mapInfo.property.find("endX" )->second);
+    int endY    = 0; //stoi(tmx->mapInfo.property.find("endY" )->second);
     float scl = (float) tmx->mapInfo.tileWidth;
 
     int maxSize = width/3;
@@ -42,7 +50,7 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
         patterns[stoi(it->second.property["size"])/3 - 1].push_back(new Pattern(stoi(it->second.property["size"]), width,it->second.data.contents));
     }
 //////////////////////
-    std::string mapStr = tmx->tileLayer[tmx->tileLayer.begin()->first].data.contents;
+    std::vector<int> mapStr = tmx->tileLayer[tmx->tileLayer.begin()->first].data.contents;
     std::string texStr = filePath + tmx->tilesetList[0].source;
 ////////////////////////
     tsx->load( texStr.c_str() );
@@ -53,6 +61,8 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
     for(std::vector<TSX::Parser::Tile>::iterator it = tsx->tileList.begin(); it != tsx->tileList.end(); ++it) {
         textures[it->id] = loadTexture((filePath + it->image.source).c_str());
         isWall[it->id] = it->property.find(std::string("Wall"))->second == std::string("true");
+        
+        printf("Wall %d : %s : %d\n", it->id, it->property.find(std::string("Wall"))->second.c_str(), isWall[it->id]);
     }
 
     isWall[0] = false;
@@ -73,7 +83,9 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
         if(patterns[size].size() != 0) {
             for(int y = 0; y < mapHeight; y+=3) {
                 for(int x = 0; x < mapWidth; x+=3) {
-                    if(isAvailable(x, y, mapWidth, mapHeight, size*3+3, tiles)) {
+                    float randNumber = rand() % 10000 / 10000.f;
+                    bool tryPattern = randNumber < chances[size];
+                    if(tryPattern && isAvailable(x, y, mapWidth, mapHeight, size*3+3, tiles)) {
                         for(unsigned int k = 0; k < patterns[size].size() ; k++) {
                             if(isConnecting(x, y, mapWidth, mapHeight, size*3+3, tiles, isWall, patterns[size].at(k))) {
                                 potentials->push_back(patterns[size].at(k));
@@ -94,14 +106,18 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
         }
     }
 
+    
+    mapStr.clear();
     for(int j = 0; j < mapHeight; j++) {
         for(int i = 0; i < mapWidth; i++) {
-            printf("%d", tiles[j*mapWidth + i].id);
+            mapStr.push_back(tiles[j*mapWidth + i].id);
+            printf("%s", (isWall[tiles[j*mapWidth + i].id])? "##" : "  ");
         }
         printf("\n");
     }
 
-    Map * map = new Map(width, height, mapStr.c_str(), scl, beginX, beginY, endX, endY);
+
+    Map * map = new Map(mapWidth, mapHeight, mapStr, isWall, scl * 2, beginX, beginY, endX, endY);
 
     map->initTextures(textures);
 

@@ -18,6 +18,7 @@ private:
     GLuint m_vaoOccID;
 
     GLuint ** m_textures;
+    bool* m_isWall;
 
     float m_size;
     float m_xPos;
@@ -25,17 +26,17 @@ private:
 
 public:
     Wall();
-    Wall(char type, GLuint ** textures, float size, float xPos, float yPos);
+    Wall(int type, GLuint ** textures, bool* isWall, float size, float xPos, float yPos);
 
-    char getType();
+    int getType();
 
     void draw();
     void drawOcc(float viewX, float viewY, int neighbors[4]);
 
     bool isWall();
     bool isFloor();
-    static bool isWall(int i);
-    static bool isFloor(int i);
+    bool isWall(int i);
+    bool isFloor(int i);
 };
 
 #endif

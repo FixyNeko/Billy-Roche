@@ -43,7 +43,7 @@ namespace TMX
       struct Data {
         std::string encoding;
         std::string compression;
-        std::string contents;
+        std::vector<int> contents;
       };
 
       struct TileLayer {

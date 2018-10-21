@@ -8,14 +8,14 @@ Map::Map(int x, int y):m_width(x), m_height(y){
     }
 }
 
-Map::Map(int x, int y, const char * str, float cellSize,
+Map::Map(int x, int y, std::vector<int> str, bool * isWall, float cellSize,
         int entryTileX, int entryTileY, int exitTileX, int exitTileY):
         m_width(x), m_height(y), m_cellSize(cellSize),
         m_entryTileX(entryTileX), m_entryTileY(entryTileY),
         m_exitTileX(exitTileX), m_exitTileY(exitTileY) {
     for(int j = 0; j < y; j++){
         for(int i = 0; i < x; i++){
-            m_layout.push_back(new Wall(str[j*x + i], &m_textures, m_cellSize, i*m_cellSize, j*m_cellSize));
+            m_layout.push_back(new Wall(str[j*x + i], &m_textures, isWall, m_cellSize, i*m_cellSize, j*m_cellSize));
         }
     }
 }

@@ -8,15 +8,16 @@
 
 Wall::Wall(){}
 
-Wall::Wall(char type, GLuint ** textures, float size, float x, float y):m_texID(type), m_textures(textures), m_size(size), m_xPos(x), m_yPos(y){
+Wall::Wall(int type, GLuint ** textures, bool* isWall, float size, float x, float y):
+    m_texID(type), m_textures(textures), m_isWall(isWall), m_size(size), m_xPos(x), m_yPos(y){
     float vboData[4*2 *2] = {  x, y,
                             x+size, y,
                             x+size, y+size,
                             x, y+size,
-                            0, 0,
-                            1, 0,
+                            0, 1,
                             1, 1,
-                            0, 1};
+                            1, 0,
+                            0, 0};
     glGenVertexArrays(1, &m_vaoID);
     glBindVertexArray(m_vaoID);
         glGenBuffers(1, &m_vboID);
@@ -55,18 +56,17 @@ Wall::Wall(char type, GLuint ** textures, float size, float x, float y):m_texID(
     glBindVertexArray(0);
 }
 
-char Wall::getType(){
+int Wall::getType(){
     return m_texID;
 }
 
 void Wall::draw(){
     glBindVertexArray(m_vaoID);
         glActiveTexture(GL_TEXTURE0);
-        if(m_texID < 256 && m_texID > 0){
             glBindTexture(GL_TEXTURE_2D, (*m_textures)[m_texID]);
                 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
             glBindTexture(GL_TEXTURE_2D, 0);
-        }
+
     glBindVertexArray(0);
 }
 
@@ -94,6 +94,7 @@ void Wall::drawOcc(float lightX, float lightY, int neighbors[4]){
         draw[2] = draw[2] && isFloor(neighbors[2]);
     }
 
+
     if(isWall()) {
         glBindVertexArray(m_vaoOccID);
             if(draw[0])
@@ -109,7 +110,7 @@ void Wall::drawOcc(float lightX, float lightY, int neighbors[4]){
 }
 
 bool Wall::isWall() {
-    return m_texID != 7;
+    return m_isWall[m_texID];
 }
 
 bool Wall::isFloor() {
@@ -117,7 +118,7 @@ bool Wall::isFloor() {
 }
 
 bool Wall::isWall(int i) {
-    return i != 7;
+    return m_isWall[i];
 }
 
 bool Wall::isFloor(int i) {

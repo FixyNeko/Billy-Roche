@@ -14,7 +14,7 @@
 #include "sdlglutils.h"
 
 struct mapStruct{
-    unsigned char id;
+    int id;
     bool up;
     bool down;
     bool left;

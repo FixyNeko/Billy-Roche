@@ -2,6 +2,7 @@
 #define PATTERN_DEF
 
 #include <string>
+#include <vector>
 #include "Wall.h"
 
 class Pattern {
@@ -9,13 +10,13 @@ class Pattern {
 private:
     int m_size;
     int m_maxSize;
-    unsigned char* m_wallsID;
+    int* m_wallsID;
 
 public:
-    Pattern(int size, int maxSize, std::string str);
+    Pattern(int size, int maxSize, std::vector<int> str);
     ~Pattern();
 
-    unsigned char getType(int x, int y);
+    int getType(int x, int y);
 
 };
 
