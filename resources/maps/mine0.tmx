@@ -7,7 +7,7 @@
   </properties>
   <data>
    <tile gid="193"/>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="182"/>
@@ -152,7 +152,7 @@
    <tile gid="179"/>
   </data>
  </layer>
- <layer name="12_3" width="12" height="12">
+ <layer name="12_3" width="12" height="12" visible="0">
   <properties>
    <property name="size" type="int" value="12"/>
   </properties>
@@ -309,7 +309,7 @@
   </properties>
   <data>
    <tile gid="193"/>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="182"/>
@@ -320,7 +320,7 @@
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="148"/>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="170"/>
    <tile gid="190"/>
    <tile gid="189"/>
@@ -465,14 +465,14 @@
    <tile gid="193"/>
    <tile gid="193"/>
    <tile gid="193"/>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="173"/>
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="148"/>
    <tile gid="193"/>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="173"/>
    <tile gid="182"/>
@@ -531,7 +531,7 @@
    <tile gid="190"/>
    <tile gid="175"/>
    <tile gid="156"/>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="170"/>
    <tile gid="188"/>
    <tile gid="185"/>
@@ -610,7 +610,7 @@
    <property name="size" type="int" value="12"/>
   </properties>
   <data>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="182"/>
@@ -761,7 +761,7 @@
    <property name="size" type="int" value="9"/>
   </properties>
   <data>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="182"/>
@@ -912,7 +912,7 @@
    <property name="size" type="int" value="6"/>
   </properties>
   <data>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="173"/>
    <tile gid="182"/>
@@ -1063,7 +1063,7 @@
    <property name="size" type="int" value="6"/>
   </properties>
   <data>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="182"/>
@@ -1365,7 +1365,7 @@
    <property name="size" type="int" value="6"/>
   </properties>
   <data>
-   <tile gid="147"/>
+   <tile gid="2"/>
    <tile gid="182"/>
    <tile gid="182"/>
    <tile gid="182"/>
