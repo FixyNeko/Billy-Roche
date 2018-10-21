@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset name="mine" tilewidth="32" tileheight="32" tilecount="48" columns="4">
+<tileset name="mine" tilewidth="32" tileheight="32" tilecount="52" columns="4">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="146">
   <properties>
    <property name="Wall" type="bool" value="true"/>
   </properties>
   <image width="32" height="32" source="../textures/angle1.png"/>
+  <objectgroup draworder="index">
+   <properties>
+    <property name="Wall" type="bool" value="false"/>
+   </properties>
+  </objectgroup>
  </tile>
  <tile id="147">
   <properties>
@@ -24,6 +29,11 @@
    <property name="Wall" type="bool" value="true"/>
   </properties>
   <image width="32" height="32" source="../textures/angle4.png"/>
+  <objectgroup draworder="index">
+   <properties>
+    <property name="Wall" type="bool" value="true"/>
+   </properties>
+  </objectgroup>
  </tile>
  <tile id="150">
   <properties>
@@ -288,5 +298,22 @@
    <property name="Wall" type="bool" value="true"/>
   </properties>
   <image width="32" height="32" source="../textures/quad.png"/>
+ </tile>
+ <tile id="194">
+  <image width="32" height="32" source="../textures/lit_b.png"/>
+  <objectgroup draworder="index">
+   <properties>
+    <property name="Wall" type="bool" value="true"/>
+   </properties>
+  </objectgroup>
+ </tile>
+ <tile id="195">
+  <image width="32" height="32" source="../textures/lit_h.png"/>
+ </tile>
+ <tile id="196">
+  <image width="32" height="32" source="../textures/porte_h.png"/>
+ </tile>
+ <tile id="197">
+  <image width="32" height="32" source="../textures/porte_b.png"/>
  </tile>
 </tileset>
