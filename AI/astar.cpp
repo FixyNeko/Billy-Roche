@@ -35,8 +35,8 @@ float l1_norm(int i0, int j0, int i1, int j1) {
 
 // weights:        flattened h x w grid of costs ----------------------------------------------------
 // h, w:           height and width of grid ---------------------------------------------------------
-// start, goal:    index of start/goal in flattened grid --------------------------------------------
-// diag_ok:        if true, allows diagonal moves (8-conn.) -----------------------------------------
+// start, goal:    index of start/goal in flattened grid ----------------start : pos_montre,     goal : pos_joueur
+// diag_ok:        if true, allows diagonal moves (8-conn.) -------------a mettre a faux de base
 // paths (output): for each node, stores previous node in path
 extern "C" bool astar(
       const float* weights, const int h, const int w,
