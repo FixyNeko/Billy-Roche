@@ -3,13 +3,14 @@
 #define WINDOW_WIDTH 1600
 #define WINDOW_HEIGHT 900
 
+bool noclip = false;
+
 bool msaa = false;
-int vsync = 1;
+int vsync = 0;
 int fps = 0;
 unsigned int lastTime, startTime, timePassed;
 SDL_Window *screen = NULL;
 SDL_GLContext glcontext = NULL;
-
 
 void draw(SDL_Window *);
 void SDLGLSetup();
@@ -39,7 +40,6 @@ Map * map;
 
 int main(int argc, char *argv[])
 {
-
     SDLGLSetup();
 
 
@@ -74,8 +74,6 @@ int main(int argc, char *argv[])
     occlusionShader->charger();
     drawShader->charger();
 
-    player->tp(WINDOW_WIDTH/2., WINDOW_HEIGHT/2.);
-
     SDL_Event event;
     bool terminate = false;
     bool loadLevel = true;
@@ -91,7 +89,7 @@ int main(int argc, char *argv[])
         SDL_PollEvent(&event);
         
         const Uint8 *state = SDL_GetKeyboardState(NULL);
-        const float speed = 0.2;
+        const double speed = 0.4;
 
         double dx = 0, dy = 0;
         double movement = timePassed * speed;
@@ -99,16 +97,16 @@ int main(int argc, char *argv[])
         if (state[SDL_SCANCODE_ESCAPE])
             terminate = true;
         if (state[SDL_SCANCODE_W])
-            if(map->getWall(player->getX(), player->getY() - movement)->isFloor())
+            if(map->getWall(player->getX(), player->getY() - movement)->isFloor() || noclip)
                 dy -= 1;
         if (state[SDL_SCANCODE_S])
-            if(map->getWall(player->getX(), player->getY() + movement)->isFloor())
+            if(map->getWall(player->getX(), player->getY() + movement)->isFloor() || noclip)
                 dy += 1;
         if (state[SDL_SCANCODE_A])
-            if(map->getWall(player->getX() - movement, player->getY())->isFloor())
+            if(map->getWall(player->getX() - movement, player->getY())->isFloor() || noclip)
                 dx -= 1;
         if (state[SDL_SCANCODE_D])
-            if(map->getWall(player->getX() + movement, player->getY())->isFloor())
+            if(map->getWall(player->getX() + movement, player->getY())->isFloor() || noclip)
                 dx += 1;
         if (state[SDL_SCANCODE_SPACE]) {
             if(loadLevel) {

@@ -3,11 +3,11 @@
 // methods
 
 float chances[5] = {
-    1.f/5.f * 3.f/3.f,
-    1.f/5.f * 3.f/6.f,
-    1.f/5.f * 3.f/9.f,
-    1.f/5.f * 3.f/12.f,
-    1.f/5.f * 3.f/15.f
+    3.f/5.f * 3.f/3.f,
+    3.f/5.f * 3.f/6.f,
+    3.f/5.f * 3.f/9.f,
+    3.f/5.f * 3.f/12.f,
+    3.f/5.f * 3.f/15.f
     };
 
 TMX::Parser* mapLoader::tmx = new TMX::Parser();
@@ -15,6 +15,9 @@ TSX::Parser* mapLoader::tsx = new TSX::Parser();
 
 mapLoader::mapLoader(std::string filePath, std::string basicName, std::string extension):
     m_filePath(filePath), m_basicName(basicName), m_extension(extension), m_currentLevel(-1) {
+
+        
+    srand(time(NULL));
 
 }
 
@@ -36,8 +39,8 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
     tmx->load( (filePath + fileName).c_str() );
     int width = tmx->mapInfo.width;
     int height = tmx->mapInfo.height;
-    int beginX  = 2; //stoi(tmx->mapInfo.property.find("beginX")->second);
-    int beginY  = 2; //stoi(tmx->mapInfo.property.find("beginY")->second);
+    int beginX  = 1; //stoi(tmx->mapInfo.property.find("beginX")->second);
+    int beginY  = 1; //stoi(tmx->mapInfo.property.find("beginY")->second);
     int endX    = 0; //stoi(tmx->mapInfo.property.find("endX" )->second);
     int endY    = 0; //stoi(tmx->mapInfo.property.find("endY" )->second);
     float scl = (float) tmx->mapInfo.tileWidth;
@@ -46,12 +49,18 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
 
     std::vector<Pattern*> patterns[maxSize];
 
+    std::vector<int> mapStr;
+    std::vector<int> rotStr;
+    std::string texStr;
+
     for( std::map<std::string, TMX::Parser::TileLayer>::iterator it = tmx->tileLayer.begin(); it != tmx->tileLayer.end(); ++it) {
-        patterns[stoi(it->second.property["size"])/3 - 1].push_back(new Pattern(stoi(it->second.property["size"]), width,it->second.data.contents));
+        patterns[stoi(it->second.property["size"])/3 - 1].push_back(new Pattern(stoi(it->second.property["size"]), width, it->second.data.contents, 0));
+        patterns[stoi(it->second.property["size"])/3 - 1].push_back(new Pattern(stoi(it->second.property["size"]), width, it->second.data.contents, 1));
+        patterns[stoi(it->second.property["size"])/3 - 1].push_back(new Pattern(stoi(it->second.property["size"]), width, it->second.data.contents, 2));
+        patterns[stoi(it->second.property["size"])/3 - 1].push_back(new Pattern(stoi(it->second.property["size"]), width, it->second.data.contents, 3));
     }
 //////////////////////
-    std::vector<int> mapStr = tmx->tileLayer[tmx->tileLayer.begin()->first].data.contents;
-    std::string texStr = filePath + tmx->tilesetList[0].source;
+    texStr = filePath + tmx->tilesetList[0].source;
 ////////////////////////
     tsx->load( texStr.c_str() );
 
@@ -61,8 +70,6 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
     for(std::vector<TSX::Parser::Tile>::iterator it = tsx->tileList.begin(); it != tsx->tileList.end(); ++it) {
         textures[it->id] = loadTexture((filePath + it->image.source).c_str());
         isWall[it->id] = it->property.find(std::string("Wall"))->second == std::string("true");
-        
-        printf("Wall %d : %s : %d\n", it->id, it->property.find(std::string("Wall"))->second.c_str(), isWall[it->id]);
     }
 
     isWall[0] = false;
@@ -70,16 +77,19 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
 
     mapStruct* tiles = new mapStruct[mapWidth * mapHeight];
 
-    srand(time(NULL));
 
     for(int y = 0; y < mapHeight; y++) {
         for(int x = 0; x < mapWidth; x++) {
             tiles[y*mapWidth + x].id = 0;
+            tiles[y*mapWidth + x].up    = false;
+            tiles[y*mapWidth + x].down  = false;
+            tiles[y*mapWidth + x].left  = false;
+            tiles[y*mapWidth + x].right = false;
         }
     }
-
+/*
     std::vector<Pattern*>* potentials = new std::vector<Pattern*>;
-    for(int size = maxSize - 1; size >= 0; size--) {
+    for(int size = maxSize - 1; size >= 1; size--) {
         if(patterns[size].size() != 0) {
             for(int y = 0; y < mapHeight; y+=3) {
                 for(int x = 0; x < mapWidth; x+=3) {
@@ -105,19 +115,140 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
             }
         }
     }
+*/
+    bool* possible = (bool*) calloc(4, sizeof(bool));
+
+    bool complete;
+
+    do{
+        complete = true;
+        int x = 0, y = 0;
+        for(int yy = 1; yy < mapHeight; yy+=3) {
+            for(int xx = 1; xx < mapWidth; xx+=3) {
+                if(tiles[yy*mapWidth + xx].id == -1){
+                    if(hasPossibilities(tiles, xx, yy, mapWidth, mapHeight, possible)){
+                        complete = false;
+                        x = xx;
+                        y = yy;
+                        xx = mapWidth;
+                        yy = mapHeight;
+                        printf("new -1 id at %d : %d\n", x, y);
+                    } else {
+                        tiles[yy*mapWidth + xx].id = -2;
+                    }
+                }
+            }
+        }
+        if(complete)
+            for(int yy = 1; yy < mapHeight; yy+=3) {
+                for(int xx = 1; xx < mapWidth; xx+=3) {
+                    if(tiles[yy*mapWidth + xx].id == 0) {
+                        complete = false;
+                        x = xx;
+                        y = yy;
+                        xx = mapWidth;
+                        yy = mapHeight;
+                        tiles[y*mapWidth + x].id = -1;
+                        printf("new 0 id at %d : %d\n", x, y);
+                    }
+                }
+            }
+            
+        while(!complete && hasPossibilities(tiles, x, y, mapWidth, mapHeight, possible)) {
+
+            //printf("building map at %d : %d\n", x, y);
+            tiles[y*mapWidth + x].id = -1;
+            
+            //completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
+            int choice;
+            do {
+                choice = rand() % 4;
+            } while(!possible[choice]);
+            switch(choice){
+                case 0:
+                    tiles[y*mapWidth + x].up = true;
+                    tiles[(y-3)*mapWidth + x].id = -1;
+                    tiles[(y-3)*mapWidth + x].down = true;
+                    y+=3;
+                    break;
+                case 1:
+                    tiles[y*mapWidth + x].down = true;
+                    tiles[(y+3)*mapWidth + x].id = -1;
+                    tiles[(y+3)*mapWidth + x].up = true;
+                    y-=3;
+                    break;
+                case 2:
+                    tiles[y*mapWidth + x].right = true;
+                    tiles[y*mapWidth + x+3].id = -1;
+                    tiles[y*mapWidth + x+3].left = true;
+                    x+=3;
+                    break;
+                case 3:
+                    tiles[y*mapWidth + x].left = true;
+                    tiles[y*mapWidth + x-3].id = -1;
+                    tiles[y*mapWidth + x-3].right = true;
+                    x-=3;
+                    break;
+            }
+        }
+        tiles[y*mapWidth + x].id = -2;
+    
+    } while(!complete);
+
+    for(int y = 1; y < mapHeight-1; y+=3) {
+        for(int x = 1; x < mapWidth-1; x+=3) {
+            if(tiles[y*mapWidth + x].id < 0){
+                Pattern* pattern = patternMatch(tiles[y*mapWidth + x], patterns[0], isWall);
+                for(int i = -1; i <= 1; i++){
+                    for(int j = -1; j <= 1; j++) {
+                        tiles[(y+j)*mapWidth + x + i].id = pattern->getType(i+1, j+1);
+                        tiles[(y+j)*mapWidth + x + i].rotation = pattern->getRotation();
+                    }
+                }
+            }
+        }
+    }
 
     
     mapStr.clear();
+    rotStr.clear();
+
+    bool** passage = (bool**) calloc(mapWidth, sizeof(bool*));
+    
+    for(int i = 0; i < mapWidth; i++) {
+        passage[i] = (bool*) calloc(mapHeight, sizeof(bool));
+        for(int j = 0; j < mapHeight; j++)
+            passage[i][j] = false;
+    }
+    
+    for(int j = 1; j < mapHeight; j+=3) {
+        for(int i = 1; i < mapWidth; i+=3) {
+            passage[i][j+1] = tiles[j*mapWidth + i].down;
+            passage[i][j-1] = tiles[j*mapWidth + i].up;
+            passage[i+1][j] = tiles[j*mapWidth + i].right;
+            passage[i-1][j] = tiles[j*mapWidth + i].left;
+        }
+    }
+
     for(int j = 0; j < mapHeight; j++) {
         for(int i = 0; i < mapWidth; i++) {
             mapStr.push_back(tiles[j*mapWidth + i].id);
-            printf("%s", (isWall[tiles[j*mapWidth + i].id])? "##" : "  ");
+            rotStr.push_back(tiles[j*mapWidth + i].rotation);
+            printf("%s", (isWall[tiles[j*mapWidth + i].id])? "#" : " ");
+            printf("%s", (passage[i][j])? "@" : " ");
+            if(i%3 == 2)
+                printf(" | ");
         }
         printf("\n");
+        if(j%3 == 2){
+            for(int i = 0; i < mapWidth; i++)
+                printf("---");
+            printf("\n");
+        }
     }
 
 
-    Map * map = new Map(mapWidth, mapHeight, mapStr, isWall, scl * 2, beginX, beginY, endX, endY);
+    Map * map = new Map(mapWidth, mapHeight, mapStr, rotStr, isWall, scl * 2, beginX, beginY, endX, endY);
 
     map->initTextures(textures);
 
@@ -184,4 +315,71 @@ bool mapLoader::isConnecting(int x, int y, int width, int height, int size, mapS
     }
 
     return true;
+}
+
+// up down right left
+bool mapLoader::hasPossibilities(mapStruct* tiles, int x, int y, int mapWidth, int mapHeight, bool* possible) {
+    if(x<0 || x >= mapWidth || y < 0 || y >= mapHeight)
+        return false;
+    possible[1] = y-3 > 0 &&            tiles[(y-3)*mapWidth + x].id == 0;
+    possible[0] = y+3 < mapHeight-1 &&  tiles[(y+3)*mapWidth + x].id == 0;
+    possible[3] = x-3 > 0 &&            tiles[y*mapWidth + x-3].id == 0;
+    possible[2] = x+3 < mapWidth-1 &&   tiles[y*mapWidth + x+3].id == 0;
+    return possible[0] || possible[1] || possible[2] || possible[3];
+}
+
+void mapLoader::completeSurroundingsConnections(mapStruct* tiles, int x, int y, int mapWidth, int mapHeight, bool* isWall) {
+    if(y-3 >= 0 && tiles[(y-3)*mapWidth + x].id < 0 ) { // up
+        float proba = rand() % 10000 / 10000.f;
+        if(proba < 0.1f) {
+            tiles[y*mapWidth + x].up = true;
+            tiles[y-3*mapWidth + x].down = true;
+        }
+    } else if(y-2 >= 0 && !isWall[tiles[(y-2)*mapWidth + x].id] ) {
+        tiles[y*mapWidth + x].up = true;
+    }
+    
+    if(y+3 < mapHeight && tiles[(y+3)*mapWidth + x].id < 0 ) { // down
+        float proba = rand() % 10000 / 10000.f;
+        if(proba < 0.1f) {
+            tiles[y*mapWidth + x].down = true;
+            tiles[y+3*mapWidth + x].up = true;
+        }
+    } else if(y+2 < mapHeight && !isWall[tiles[(y+2)*mapWidth + x].id] ) {
+        tiles[y*mapWidth + x].down = true;
+    }
+    
+    if(x-3 >= 0 && tiles[(y)*mapWidth + x-3].id < 0 ) { // left
+        float proba = rand() % 10000 / 10000.f;
+        if(proba < 0.1f) {
+            tiles[x*mapWidth + x].left = true;
+            tiles[y*mapWidth + x-3].right = true;
+        }
+    } else if(x-2 >= 0 && !isWall[tiles[(y)*mapWidth + x-2].id] ) {
+        tiles[x*mapWidth + x].left = true;
+    }
+    
+    if(x+3 < mapWidth && tiles[(y)*mapWidth + x+3].id < 0 ) { // right
+        float proba = rand() % 10000 / 10000.f;
+        if(proba < 0.1f) {
+            tiles[x*mapWidth + x].right = true;
+            tiles[y*mapWidth + x+3].left = true;
+        }
+    } else if(x+2 < mapWidth && !isWall[tiles[(y)*mapWidth + x+2].id] ) {
+        tiles[y*mapWidth + x].right = true;
+    }
+
+}
+
+Pattern* mapLoader::patternMatch(mapStruct tile, std::vector<Pattern*> patterns, bool* isWall) {
+    for(Pattern* pattern : patterns) {
+        bool result = true;
+        result = result && (tile.up       == !isWall[pattern->getType(1, 0)]);
+        result = result && (tile.down     == !isWall[pattern->getType(1, 2)]);
+        result = result && (tile.right    == !isWall[pattern->getType(2, 1)]);
+        result = result && (tile.left     == !isWall[pattern->getType(0, 1)]);
+        if(result)
+            return pattern;
+    }
+    return patterns[4];
 }

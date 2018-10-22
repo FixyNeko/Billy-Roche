@@ -23,10 +23,11 @@ private:
     float m_size;
     float m_xPos;
     float m_yPos;
+    int m_rot;
 
 public:
     Wall();
-    Wall(int type, GLuint ** textures, bool* isWall, float size, float xPos, float yPos);
+    Wall(int type, int rot, GLuint ** textures, bool* isWall, float size, float xPos, float yPos);
 
     int getType();
 

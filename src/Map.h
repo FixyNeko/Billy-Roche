@@ -24,7 +24,7 @@ private:
 
 public:
     Map(int width, int height);
-    Map(int width, int height, std::vector<int> str, bool* isWall, float cellSize,
+    Map(int width, int height, std::vector<int> str, std::vector<int> strRot, bool* isWall, float cellSize,
         int entryTileX, int entryTileY, int exitTileX, int exitTileY);
     ~Map();
 

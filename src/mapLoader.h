@@ -19,6 +19,7 @@ struct mapStruct{
     bool down;
     bool left;
     bool right;
+    int rotation;
 };
 
 class mapLoader {
@@ -38,6 +39,9 @@ public:
     static Map * readFromFile(std::string filePath, std::string fileName, int mapWidth, int mapHeight);
     static bool isAvailable(int x, int y, int width, int height, int size, mapStruct* tiles);
     static bool isConnecting(int x, int y, int width, int height, int size, mapStruct* tiles, bool* isWall, Pattern* pattern);
+    static bool hasPossibilities(mapStruct* tiles, int x, int y, int mapWidth, int mapHeight, bool* possible);
+    static void completeSurroundingsConnections(mapStruct* tiles, int x, int y, int mapWidth, int mapHeight, bool* isWall);
+    static Pattern* patternMatch(mapStruct tile, std::vector<Pattern*> patterns, bool* isWall);
 };
 
 #endif

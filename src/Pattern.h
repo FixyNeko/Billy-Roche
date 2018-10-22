@@ -10,13 +10,15 @@ class Pattern {
 private:
     int m_size;
     int m_maxSize;
-    int* m_wallsID;
+    int** m_wallsID;
+    int m_rotation;
 
 public:
-    Pattern(int size, int maxSize, std::vector<int> str);
+    Pattern(int size, int maxSize, std::vector<int> str, int rotation);
     ~Pattern();
 
     int getType(int x, int y);
+    int getRotation();
 
 };
 
