@@ -300,6 +300,9 @@
   <image width="32" height="32" source="../textures/quad.png"/>
  </tile>
  <tile id="194">
+  <properties>
+   <property name="Wall" type="bool" value="false"/>
+  </properties>
   <image width="32" height="32" source="../textures/lit_b.png"/>
   <objectgroup draworder="index">
    <properties>
@@ -308,12 +311,21 @@
   </objectgroup>
  </tile>
  <tile id="195">
+  <properties>
+   <property name="Wall" type="bool" value="false"/>
+  </properties>
   <image width="32" height="32" source="../textures/lit_h.png"/>
  </tile>
  <tile id="196">
+  <properties>
+   <property name="Wall" type="bool" value="true"/>
+  </properties>
   <image width="32" height="32" source="../textures/porte_h.png"/>
  </tile>
  <tile id="197">
+  <properties>
+   <property name="Wall" type="bool" value="true"/>
+  </properties>
   <image width="32" height="32" source="../textures/porte_b.png"/>
  </tile>
 </tileset>
