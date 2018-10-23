@@ -81,13 +81,14 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
     for(int y = 0; y < mapHeight; y++) {
         for(int x = 0; x < mapWidth; x++) {
             tiles[y*mapWidth + x].id = 0;
+            tiles[y*mapWidth + x].rotation = 0;
             tiles[y*mapWidth + x].up    = false;
             tiles[y*mapWidth + x].down  = false;
             tiles[y*mapWidth + x].left  = false;
             tiles[y*mapWidth + x].right = false;
         }
     }
-/*
+
     std::vector<Pattern*>* potentials = new std::vector<Pattern*>;
     for(int size = maxSize - 1; size >= 1; size--) {
         if(patterns[size].size() != 0) {
@@ -106,6 +107,7 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
                             for(int i = 0; i < size*3+3; i++) {
                                 for(int j = 0; j < size*3+3; j++) {
                                     tiles[(y+j) * mapWidth + x + i].id = pattern->getType(i, j);
+                                    tiles[(y+j) * mapWidth + x + i].rotation = pattern->getRotation();
                                 }
                             }
                             potentials->clear();
@@ -115,7 +117,7 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
             }
         }
     }
-*/
+
     bool* possible = (bool*) calloc(4, sizeof(bool));
 
     bool complete;
@@ -153,46 +155,42 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
                     }
                 }
             }
-            
-        while(!complete && hasPossibilities(tiles, x, y, mapWidth, mapHeight, possible)) {
+        if(tiles[y*mapWidth + x].id < 0) { 
+            while(!complete && hasPossibilities(tiles, x, y, mapWidth, mapHeight, possible)) {
 
-            //printf("building map at %d : %d\n", x, y);
-            tiles[y*mapWidth + x].id = -1;
-            
-            //completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
-            int choice;
-            do {
-                choice = rand() % 4;
-            } while(!possible[choice]);
-            switch(choice){
-                case 0:
-                    tiles[y*mapWidth + x].up = true;
-                    tiles[(y-3)*mapWidth + x].id = -1;
-                    tiles[(y-3)*mapWidth + x].down = true;
-                    y+=3;
-                    break;
-                case 1:
-                    tiles[y*mapWidth + x].down = true;
-                    tiles[(y+3)*mapWidth + x].id = -1;
-                    tiles[(y+3)*mapWidth + x].up = true;
-                    y-=3;
-                    break;
-                case 2:
-                    tiles[y*mapWidth + x].right = true;
-                    tiles[y*mapWidth + x+3].id = -1;
-                    tiles[y*mapWidth + x+3].left = true;
-                    x+=3;
-                    break;
-                case 3:
-                    tiles[y*mapWidth + x].left = true;
-                    tiles[y*mapWidth + x-3].id = -1;
-                    tiles[y*mapWidth + x-3].right = true;
-                    x-=3;
-                    break;
+                //printf("building map at %d : %d\n", x, y);
+                tiles[y*mapWidth + x].id = -1;
+                
+                completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
+                int choice;
+                do {
+                    choice = rand() % 4;
+                } while(!possible[choice]);
+                switch(choice){
+                    case 0:
+                        tiles[y*mapWidth + x].down = true;
+                        tiles[(y+3)*mapWidth + x].up = true;
+                        y+=3;
+                        break;
+                    case 1:
+                        tiles[y*mapWidth + x].up = true;
+                        tiles[(y-3)*mapWidth + x].down = true;
+                        y-=3;
+                        break;
+                    case 2:
+                        tiles[y*mapWidth + x].right = true;
+                        tiles[y*mapWidth + x+3].left = true;
+                        x+=3;
+                        break;
+                    case 3:
+                        tiles[y*mapWidth + x].left = true;
+                        tiles[y*mapWidth + x-3].right = true;
+                        x-=3;
+                        break;
+                }
             }
+            tiles[y*mapWidth + x].id = -2;
         }
-        tiles[y*mapWidth + x].id = -2;
-    
     } while(!complete);
 
     for(int y = 1; y < mapHeight-1; y+=3) {
@@ -329,44 +327,45 @@ bool mapLoader::hasPossibilities(mapStruct* tiles, int x, int y, int mapWidth, i
 }
 
 void mapLoader::completeSurroundingsConnections(mapStruct* tiles, int x, int y, int mapWidth, int mapHeight, bool* isWall) {
-    if(y-3 >= 0 && tiles[(y-3)*mapWidth + x].id < 0 ) { // up
+    float connectProba = 0.1f;
+    if(y-3 >= 0 && tiles[(y-3)*mapWidth + x].id <= 0 ) { // up
         float proba = rand() % 10000 / 10000.f;
-        if(proba < 0.1f) {
+        if(proba <= connectProba) {
             tiles[y*mapWidth + x].up = true;
-            tiles[y-3*mapWidth + x].down = true;
+            tiles[(y-3)*mapWidth + x].down = true;
         }
-    } else if(y-2 >= 0 && !isWall[tiles[(y-2)*mapWidth + x].id] ) {
-        tiles[y*mapWidth + x].up = true;
+    } else if(y-2 >= 0 && tiles[(y-2)*mapWidth + x].id != 0 ) {
+        tiles[y*mapWidth + x].up = !isWall[tiles[(y-2)*mapWidth + x].id];
     }
     
-    if(y+3 < mapHeight && tiles[(y+3)*mapWidth + x].id < 0 ) { // down
+    if(y+3 < mapHeight && tiles[(y+3)*mapWidth + x].id <= 0 ) { // down
         float proba = rand() % 10000 / 10000.f;
-        if(proba < 0.1f) {
+        if(proba <= connectProba) {
             tiles[y*mapWidth + x].down = true;
-            tiles[y+3*mapWidth + x].up = true;
+            tiles[(y+3)*mapWidth + x].up = true;
         }
-    } else if(y+2 < mapHeight && !isWall[tiles[(y+2)*mapWidth + x].id] ) {
-        tiles[y*mapWidth + x].down = true;
+    } else if(y+2 < mapHeight && tiles[(y+2)*mapWidth + x].id != 0 ) {
+        tiles[y*mapWidth + x].down = !isWall[tiles[(y+2)*mapWidth + x].id];
     }
     
-    if(x-3 >= 0 && tiles[(y)*mapWidth + x-3].id < 0 ) { // left
+    if(x-3 >= 0 && tiles[y*mapWidth + x-3].id <= 0 ) { // left
         float proba = rand() % 10000 / 10000.f;
-        if(proba < 0.1f) {
-            tiles[x*mapWidth + x].left = true;
+        if(proba <= connectProba) {
+            tiles[y*mapWidth + x].left = true;
             tiles[y*mapWidth + x-3].right = true;
         }
-    } else if(x-2 >= 0 && !isWall[tiles[(y)*mapWidth + x-2].id] ) {
-        tiles[x*mapWidth + x].left = true;
+    } else if(x-2 >= 0 && tiles[y*mapWidth + x-2].id != 0 ) {
+        tiles[y*mapWidth + x].left = !isWall[tiles[y*mapWidth + x-2].id];
     }
     
-    if(x+3 < mapWidth && tiles[(y)*mapWidth + x+3].id < 0 ) { // right
+    if(x+3 < mapWidth && tiles[y*mapWidth + x+3].id <= 0 ) { // right
         float proba = rand() % 10000 / 10000.f;
-        if(proba < 0.1f) {
-            tiles[x*mapWidth + x].right = true;
+        if(proba <= connectProba) {
+            tiles[y*mapWidth + x].right = true;
             tiles[y*mapWidth + x+3].left = true;
         }
-    } else if(x+2 < mapWidth && !isWall[tiles[(y)*mapWidth + x+2].id] ) {
-        tiles[y*mapWidth + x].right = true;
+    } else if(x+2 < mapWidth && tiles[y*mapWidth + x+2].id != 0 ) {
+        tiles[y*mapWidth + x].right = !isWall[tiles[y*mapWidth + x+2].id];
     }
 
 }
