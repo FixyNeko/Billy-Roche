@@ -3,7 +3,7 @@
 #define WINDOW_WIDTH 1600
 #define WINDOW_HEIGHT 900
 
-bool noclip = false;
+bool noclip = true;
 
 bool msaa = false;
 int vsync = 0;
