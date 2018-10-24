@@ -3,11 +3,11 @@
 // methods
 
 float chances[5] = {
-    3.f/5.f * 3.f/3.f,
-    3.f/5.f * 3.f/6.f,
-    3.f/5.f * 3.f/9.f,
-    3.f/5.f * 3.f/12.f,
-    3.f/5.f * 3.f/15.f
+    1.f/5.f * 3.f/3.f,
+    1.f/5.f * 3.f/6.f,
+    1.f/5.f * 3.f/9.f,
+    1.f/5.f * 3.f/12.f,
+    1.f/5.f * 3.f/15.f
     };
 
 TMX::Parser* mapLoader::tmx = new TMX::Parser();
@@ -29,7 +29,7 @@ Map * mapLoader::nextLevel() {
     printf("nextLevel\n");
     m_currentLevel++;
     std::string currentLevelName = m_basicName + std::to_string(m_currentLevel) + m_extension;
-    return readFromFile(m_filePath, currentLevelName, 21, 21);
+    return readFromFile(m_filePath, currentLevelName, 51, 51);
 }
 
 // static functions
@@ -157,11 +157,11 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
             }
         if(tiles[y*mapWidth + x].id < 0) { 
             while(!complete && hasPossibilities(tiles, x, y, mapWidth, mapHeight, possible)) {
-
-                //printf("building map at %d : %d\n", x, y);
-                tiles[y*mapWidth + x].id = -1;
                 
                 completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
+
+                tiles[y*mapWidth + x].id = -1;
+                
                 int choice;
                 do {
                     choice = rand() % 4;
@@ -190,6 +190,7 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
                 }
             }
             tiles[y*mapWidth + x].id = -2;
+            completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
         }
     } while(!complete);
 
@@ -232,21 +233,28 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
         for(int i = 0; i < mapWidth; i++) {
             mapStr.push_back(tiles[j*mapWidth + i].id);
             rotStr.push_back(tiles[j*mapWidth + i].rotation);
-            printf("%s", (isWall[tiles[j*mapWidth + i].id])? "#" : " ");
-            printf("%s", (passage[i][j])? "@" : " ");
-            if(i%3 == 2)
-                printf(" | ");
-        }
-        printf("\n");
-        if(j%3 == 2){
-            for(int i = 0; i < mapWidth; i++)
-                printf("---");
-            printf("\n");
         }
     }
 
+    #ifdef DEBUG
+        for(int j = 0; j < mapHeight; j++) {
+            for(int i = 0; i < mapWidth; i++) {
+                printf("%s", (isWall[tiles[j*mapWidth + i].id])? "#" : " ");
+                printf("%s", (passage[i][j])? "@" : " ");
+                if(i%3 == 2)
+                    printf(" | ");
+            }
+            printf("\n");
+            if(j%3 == 2){
+                for(int i = 0; i < mapWidth; i++)
+                    printf("---");
+                printf("\n");
+            }
+        }
+    #endif
 
-    Map * map = new Map(mapWidth, mapHeight, mapStr, rotStr, isWall, scl * 2, beginX, beginY, endX, endY);
+
+    Map * map = new Map(mapWidth, mapHeight, mapStr, rotStr, isWall, scl/4, beginX, beginY, endX, endY);
 
     map->initTextures(textures);
 
@@ -334,7 +342,7 @@ void mapLoader::completeSurroundingsConnections(mapStruct* tiles, int x, int y, 
             tiles[y*mapWidth + x].up = true;
             tiles[(y-3)*mapWidth + x].down = true;
         }
-    } else if(y-2 >= 0 && tiles[(y-2)*mapWidth + x].id != 0 ) {
+    } else if(y-2 >= 0 && tiles[(y-2)*mapWidth + x].id > 0 ) {
         tiles[y*mapWidth + x].up = !isWall[tiles[(y-2)*mapWidth + x].id];
     }
     
@@ -344,7 +352,7 @@ void mapLoader::completeSurroundingsConnections(mapStruct* tiles, int x, int y, 
             tiles[y*mapWidth + x].down = true;
             tiles[(y+3)*mapWidth + x].up = true;
         }
-    } else if(y+2 < mapHeight && tiles[(y+2)*mapWidth + x].id != 0 ) {
+    } else if(y+2 < mapHeight && tiles[(y+2)*mapWidth + x].id > 0 ) {
         tiles[y*mapWidth + x].down = !isWall[tiles[(y+2)*mapWidth + x].id];
     }
     
@@ -354,7 +362,7 @@ void mapLoader::completeSurroundingsConnections(mapStruct* tiles, int x, int y, 
             tiles[y*mapWidth + x].left = true;
             tiles[y*mapWidth + x-3].right = true;
         }
-    } else if(x-2 >= 0 && tiles[y*mapWidth + x-2].id != 0 ) {
+    } else if(x-2 >= 0 && tiles[y*mapWidth + x-2].id > 0 ) {
         tiles[y*mapWidth + x].left = !isWall[tiles[y*mapWidth + x-2].id];
     }
     
@@ -364,7 +372,7 @@ void mapLoader::completeSurroundingsConnections(mapStruct* tiles, int x, int y, 
             tiles[y*mapWidth + x].right = true;
             tiles[y*mapWidth + x+3].left = true;
         }
-    } else if(x+2 < mapWidth && tiles[y*mapWidth + x+2].id != 0 ) {
+    } else if(x+2 < mapWidth && tiles[y*mapWidth + x+2].id > 0 ) {
         tiles[y*mapWidth + x].right = !isWall[tiles[y*mapWidth + x+2].id];
     }
 
