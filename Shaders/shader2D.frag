@@ -15,7 +15,7 @@ out vec4 fragColor;
 uniform float near;
 uniform float far;
 
-float shadowBlur = 3; // counted in pixels
+float shadowBlur = 10; // counted in pixels
 float biasPixels = 1. / far * shadowBlur;
 
 float bias = 0.005;
@@ -72,8 +72,15 @@ void main() {
 	float currentDepth = distance(gl_FragCoord.xy, vec2(width/2, height/2)) / far; // normalized
 
 
-	if(currentDepth > shadowDepth - biasPixels - bias)
-		fragColor *= clamp( (shadowDepth - currentDepth) / biasPixels, 0.7, 1);
+	if(currentDepth > shadowDepth - biasPixels - bias) {
+		float mult = (shadowDepth - currentDepth) / biasPixels;
+		if(mult > 1)
+			fragColor *= 1;
+		else if(mult < 0.3)
+			fragColor *= 0.3;
+		else
+			fragColor *= mult;
+	}
 	
 	fragColor *= 1. - currentDepth;
 	
