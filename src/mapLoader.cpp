@@ -29,7 +29,7 @@ Map * mapLoader::nextLevel() {
     printf("nextLevel\n");
     m_currentLevel++;
     std::string currentLevelName = m_basicName + std::to_string(m_currentLevel) + m_extension;
-    return readFromFile(m_filePath, currentLevelName, 51, 51);
+    return readFromFile(m_filePath, currentLevelName, 72, 72);
 }
 
 // static functions
@@ -77,123 +77,134 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
 
     mapStruct* tiles = new mapStruct[mapWidth * mapHeight];
 
-
-    for(int y = 0; y < mapHeight; y++) {
-        for(int x = 0; x < mapWidth; x++) {
-            tiles[y*mapWidth + x].id = 0;
-            tiles[y*mapWidth + x].rotation = 0;
-            tiles[y*mapWidth + x].up    = false;
-            tiles[y*mapWidth + x].down  = false;
-            tiles[y*mapWidth + x].left  = false;
-            tiles[y*mapWidth + x].right = false;
+    int valid, attempts = 0;;
+    do{
+        attempts++;
+        valid = 0;
+        for(int y = 0; y < mapHeight; y++) {
+            for(int x = 0; x < mapWidth; x++) {
+                tiles[y*mapWidth + x].id = 0;
+                tiles[y*mapWidth + x].rotation = 0;
+                tiles[y*mapWidth + x].up    = false;
+                tiles[y*mapWidth + x].down  = false;
+                tiles[y*mapWidth + x].left  = false;
+                tiles[y*mapWidth + x].right = false;
+            }
         }
-    }
 
-    std::vector<Pattern*>* potentials = new std::vector<Pattern*>;
-    for(int size = maxSize - 1; size >= 1; size--) {
-        if(patterns[size].size() != 0) {
-            for(int y = 0; y < mapHeight; y+=3) {
-                for(int x = 0; x < mapWidth; x+=3) {
-                    float randNumber = rand() % 10000 / 10000.f;
-                    bool tryPattern = randNumber < chances[size];
-                    if(tryPattern && isAvailable(x, y, mapWidth, mapHeight, size*3+3, tiles)) {
-                        for(unsigned int k = 0; k < patterns[size].size() ; k++) {
-                            if(isConnecting(x, y, mapWidth, mapHeight, size*3+3, tiles, isWall, patterns[size].at(k))) {
-                                potentials->push_back(patterns[size].at(k));
-                            }
-                        }
-                        if(potentials->size() > 0){
-                            Pattern* pattern = potentials->at(rand() % potentials->size());
-                            for(int i = 0; i < size*3+3; i++) {
-                                for(int j = 0; j < size*3+3; j++) {
-                                    tiles[(y+j) * mapWidth + x + i].id = pattern->getType(i, j);
-                                    tiles[(y+j) * mapWidth + x + i].rotation = pattern->getRotation();
+        /* Big Patterns placement */
+        std::vector<Pattern*>* potentials = new std::vector<Pattern*>;
+        for(int size = maxSize - 1; size >= 1; size--) {
+            if(patterns[size].size() > 0) {
+                for(int y = 0; y < mapHeight; y+=3) {
+                    for(int x = 0; x < mapWidth; x+=3) {
+                        float randNumber = rand() % 10000 / 10000.f;
+                        bool tryPattern = randNumber < chances[size];
+                        if(tryPattern && isAvailable(x, y, mapWidth, mapHeight, size*3+3, tiles)) {
+                            for(unsigned int k = 0; k < patterns[size].size() ; k++) {
+                                if(isConnecting(x, y, mapWidth, mapHeight, size*3+3, tiles, isWall, patterns[size].at(k))) {
+                                    potentials->push_back(patterns[size].at(k));
                                 }
                             }
-                            potentials->clear();
+                            if(potentials->size() > 0){
+                                Pattern* pattern = potentials->at(rand() % potentials->size());
+                                for(int i = 0; i < size*3+3; i++) {
+                                    for(int j = 0; j < size*3+3; j++) {
+                                        tiles[(y+j) * mapWidth + x + i].id = pattern->getType(i, j);
+                                        tiles[(y+j) * mapWidth + x + i].rotation = pattern->getRotation();
+                                    }
+                                }
+                                potentials->clear();
+                            }
                         }
                     }
                 }
             }
         }
-    }
+        delete potentials;
 
-    bool* possible = (bool*) calloc(4, sizeof(bool));
+        bool* possible = (bool*) calloc(4, sizeof(bool));
 
-    bool complete;
+        bool complete;
 
-    do{
-        complete = true;
-        int x = 0, y = 0;
-        for(int yy = 1; yy < mapHeight; yy+=3) {
-            for(int xx = 1; xx < mapWidth; xx+=3) {
-                if(tiles[yy*mapWidth + xx].id == -1){
-                    if(hasPossibilities(tiles, xx, yy, mapWidth, mapHeight, possible)){
-                        complete = false;
-                        x = xx;
-                        y = yy;
-                        xx = mapWidth;
-                        yy = mapHeight;
-                        printf("new -1 id at %d : %d\n", x, y);
-                    } else {
-                        tiles[yy*mapWidth + xx].id = -2;
-                    }
-                }
-            }
-        }
-        if(complete)
+        /* Maze generation */
+        do{
+            complete = true;
+            int x = 0, y = 0;
             for(int yy = 1; yy < mapHeight; yy+=3) {
                 for(int xx = 1; xx < mapWidth; xx+=3) {
-                    if(tiles[yy*mapWidth + xx].id == 0) {
-                        complete = false;
-                        x = xx;
-                        y = yy;
-                        xx = mapWidth;
-                        yy = mapHeight;
-                        tiles[y*mapWidth + x].id = -1;
-                        printf("new 0 id at %d : %d\n", x, y);
+                    if(tiles[yy*mapWidth + xx].id == -1){
+                        if(hasPossibilities(tiles, xx, yy, mapWidth, mapHeight, possible)){
+                            complete = false;
+                            x = xx;
+                            y = yy;
+                            xx = mapWidth;
+                            yy = mapHeight;
+                            //printf("new -1 id at %d : %d\n", x, y);
+                        } else {
+                            tiles[yy*mapWidth + xx].id = -2;
+                        }
                     }
                 }
             }
-        if(tiles[y*mapWidth + x].id < 0) { 
-            while(!complete && hasPossibilities(tiles, x, y, mapWidth, mapHeight, possible)) {
-                
-                completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
-
-                tiles[y*mapWidth + x].id = -1;
-                
-                int choice;
-                do {
-                    choice = rand() % 4;
-                } while(!possible[choice]);
-                switch(choice){
-                    case 0:
-                        tiles[y*mapWidth + x].down = true;
-                        tiles[(y+3)*mapWidth + x].up = true;
-                        y+=3;
-                        break;
-                    case 1:
-                        tiles[y*mapWidth + x].up = true;
-                        tiles[(y-3)*mapWidth + x].down = true;
-                        y-=3;
-                        break;
-                    case 2:
-                        tiles[y*mapWidth + x].right = true;
-                        tiles[y*mapWidth + x+3].left = true;
-                        x+=3;
-                        break;
-                    case 3:
-                        tiles[y*mapWidth + x].left = true;
-                        tiles[y*mapWidth + x-3].right = true;
-                        x-=3;
-                        break;
+            if(complete)
+                for(int yy = 1; yy < mapHeight; yy+=3) {
+                    for(int xx = 1; xx < mapWidth; xx+=3) {
+                        if(tiles[yy*mapWidth + xx].id == 0) {
+                            complete = false;
+                            x = xx;
+                            y = yy;
+                            xx = mapWidth;
+                            yy = mapHeight;
+                            tiles[y*mapWidth + x].id = -1;
+                            //printf("new 0 id at %d : %d\n", x, y);
+                            valid++; // fucked if >= 2
+                        }
+                    }
                 }
-            }
-            tiles[y*mapWidth + x].id = -2;
-            completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
-        }
-    } while(!complete);
+            if(tiles[y*mapWidth + x].id < 0) { 
+                while(!complete && hasPossibilities(tiles, x, y, mapWidth, mapHeight, possible)) {
+                    
+                    completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
 
+                    tiles[y*mapWidth + x].id = -1;
+                    
+                    int choice;
+                    do {
+                        choice = rand() % 4;
+                    } while(!possible[choice]);
+                    switch(choice){
+                        case 0:
+                            tiles[y*mapWidth + x].down = true;
+                            tiles[(y+3)*mapWidth + x].up = true;
+                            y+=3;
+                            break;
+                        case 1:
+                            tiles[y*mapWidth + x].up = true;
+                            tiles[(y-3)*mapWidth + x].down = true;
+                            y-=3;
+                            break;
+                        case 2:
+                            tiles[y*mapWidth + x].right = true;
+                            tiles[y*mapWidth + x+3].left = true;
+                            x+=3;
+                            break;
+                        case 3:
+                            tiles[y*mapWidth + x].left = true;
+                            tiles[y*mapWidth + x-3].right = true;
+                            x-=3;
+                            break;
+                    }
+                }
+                tiles[y*mapWidth + x].id = -2;
+                completeSurroundingsConnections(tiles, x, y, mapWidth, mapHeight, isWall);
+            }
+        } while(!complete);
+    }while(valid >= 2);
+
+    printf("Generation attemps: %d\n", attempts);
+
+    /* Construction of map based on maze data */
     for(int y = 1; y < mapHeight-1; y+=3) {
         for(int x = 1; x < mapWidth-1; x+=3) {
             if(tiles[y*mapWidth + x].id < 0){
@@ -207,27 +218,9 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
             }
         }
     }
-
     
     mapStr.clear();
     rotStr.clear();
-
-    bool** passage = (bool**) calloc(mapWidth, sizeof(bool*));
-    
-    for(int i = 0; i < mapWidth; i++) {
-        passage[i] = (bool*) calloc(mapHeight, sizeof(bool));
-        for(int j = 0; j < mapHeight; j++)
-            passage[i][j] = false;
-    }
-    
-    for(int j = 1; j < mapHeight; j+=3) {
-        for(int i = 1; i < mapWidth; i+=3) {
-            passage[i][j+1] = tiles[j*mapWidth + i].down;
-            passage[i][j-1] = tiles[j*mapWidth + i].up;
-            passage[i+1][j] = tiles[j*mapWidth + i].right;
-            passage[i-1][j] = tiles[j*mapWidth + i].left;
-        }
-    }
 
     for(int j = 0; j < mapHeight; j++) {
         for(int i = 0; i < mapWidth; i++) {
@@ -237,6 +230,22 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
     }
 
     #ifdef DEBUG
+        bool** passage = (bool**) calloc(mapWidth, sizeof(bool*));
+        
+        for(int i = 0; i < mapWidth; i++) {
+            passage[i] = (bool*) calloc(mapHeight, sizeof(bool));
+            for(int j = 0; j < mapHeight; j++)
+                passage[i][j] = false;
+        }
+        
+        for(int j = 1; j < mapHeight; j+=3) {
+            for(int i = 1; i < mapWidth; i+=3) {
+                passage[i][j+1] = tiles[j*mapWidth + i].down;
+                passage[i][j-1] = tiles[j*mapWidth + i].up;
+                passage[i+1][j] = tiles[j*mapWidth + i].right;
+                passage[i-1][j] = tiles[j*mapWidth + i].left;
+            }
+        }
         for(int j = 0; j < mapHeight; j++) {
             for(int i = 0; i < mapWidth; i++) {
                 printf("%s", (isWall[tiles[j*mapWidth + i].id])? "#" : " ");
@@ -251,10 +260,16 @@ Map * mapLoader::readFromFile(std::string filePath, std::string fileName, int ma
                 printf("\n");
             }
         }
+        
+        for(int i = 0; i < mapWidth; i++)
+            free(passage[i]);
+        free(passage);
     #endif
 
+    
+    delete tiles;
 
-    Map * map = new Map(mapWidth, mapHeight, mapStr, rotStr, isWall, scl/4, beginX, beginY, endX, endY);
+    Map * map = new Map(mapWidth, mapHeight, mapStr, rotStr, isWall, scl * 2, beginX, beginY, endX, endY);
 
     map->initTextures(textures);
 
@@ -267,7 +282,7 @@ bool mapLoader::isAvailable(int x, int y, int width, int height, int size, mapSt
 
     for(int j = y; j < y + size; j++) {
         for(int i = x; i < x + size; i++) {
-            if(tiles[j*width + i].id != 0)
+            if(tiles[j*width + i].id > 0)
                 return false;
         }
     }
@@ -282,7 +297,7 @@ bool mapLoader::isConnecting(int x, int y, int width, int height, int size, mapS
                 return false;
         }
         else {
-            if(tiles[(y - 1)*width + x + i].id != 0 && isWall[pattern->getType(i, 0)] != isWall[tiles[(y - 1)*width + x + i].id] )
+            if(tiles[(y - 1)*width + x + i].id > 0 && isWall[pattern->getType(i, 0)] != isWall[tiles[(y - 1)*width + x + i].id] )
                 return false;
         }
     }
@@ -293,7 +308,7 @@ bool mapLoader::isConnecting(int x, int y, int width, int height, int size, mapS
                 return false;
         }
         else {
-            if(tiles[(y + size)*width + x + i].id != 0 && isWall[pattern->getType(i, size-1)] != isWall[tiles[(y + size)*width + x + i].id] )
+            if(tiles[(y + size)*width + x + i].id > 0 && isWall[pattern->getType(i, size-1)] != isWall[tiles[(y + size)*width + x + i].id] )
                 return false;
         }
     }
@@ -304,7 +319,7 @@ bool mapLoader::isConnecting(int x, int y, int width, int height, int size, mapS
                 return false;
         }
         else {
-            if(tiles[(y + j)*width + x - 1].id != 0 && isWall[pattern->getType(0, j)] != isWall[tiles[(y + j)*width + x - 1].id] )
+            if(tiles[(y + j)*width + x - 1].id > 0 && isWall[pattern->getType(0, j)] != isWall[tiles[(y + j)*width + x - 1].id] )
                 return false;
         }
     }
@@ -315,7 +330,7 @@ bool mapLoader::isConnecting(int x, int y, int width, int height, int size, mapS
                 return false;
         }
         else {
-            if(tiles[(y + j)*width + x + size].id != 0 && isWall[pattern->getType(size-1, j)] != isWall[tiles[(y + j)*width + x + size].id] )
+            if(tiles[(y + j)*width + x + size].id > 0 && isWall[pattern->getType(size-1, j)] != isWall[tiles[(y + j)*width + x + size].id] )
                 return false;
         }
     }
